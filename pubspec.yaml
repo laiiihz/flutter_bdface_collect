@@ -3,8 +3,8 @@ description: a baidu face collect plugin. Only Android and IOS platforms are sup
 version: 1.1.8
 homepage: https://github.com/fluttercandies/flutter_bdface_collect
 environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=1.20.0"
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
 
 dependencies:
   flutter:
