@@ -20,6 +20,13 @@ class _ServiceApi {
     return version;
   }
 
+  /// 获取SDK版本
+  Future<String?> get version async {
+    final String? version =
+        await _methodChannel.invokeMethod<String>(MethodConstants.GetVersion);
+    return version;
+  }
+
   /// 初始化
   Future<String?> init(String licenseId) async {
     // var s = await Permission.camera.status;
@@ -56,5 +63,11 @@ class _ServiceApi {
   /// 释放
   Future<void> unInit() async {
     await _methodChannel.invokeMethod(MethodConstants.UnInit);
+  }
+
+  /// 更新人脸识别配置 [FaceConfig]
+  Future<void> updateOption(FaceConfig config) async {
+    await _methodChannel.invokeMapMethod(
+        MethodConstants.UpdateOption, config.toMap());
   }
 }

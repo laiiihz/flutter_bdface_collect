@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+
 /// 人脸识别配置
 class FaceConfig {
   /// 最小人脸阈值
@@ -205,4 +207,266 @@ class CollectResult {
   /// 原图加密字符串
   late String imageSrcBase64;
   late String error;
+}
+
+/// 活体采集代码
+enum LivenessRemindCode {
+  /// 成功
+  ok,
+
+  /// 出框
+  beyondPreviewFrame,
+
+  /// 没有检测到人脸
+  noFaceDetected,
+
+  /// 光照过高
+  muchIllumination,
+
+  /// 光照不足
+  poorIllumination,
+
+  /// 图像模糊
+  imageBlured,
+
+  /// 太远
+  tooFar,
+
+  /// 太近
+  tooClose,
+
+  /// 头部偏低
+  pitchOutofDownRange,
+
+  /// 头部偏高
+  pitchOutofUpRange,
+
+  /// 头部偏左
+  yawOutofLeftRange,
+
+  /// 头部偏右
+  yawOutofRightRange,
+
+  /// 左眼有遮挡
+  occlusionLeftEye,
+
+  /// 右眼有遮挡
+  occlusionRightEye,
+
+  /// 鼻子有遮挡
+  occlusionNose,
+
+  /// 嘴巴有遮挡
+  occlusionMouth,
+
+  /// 左脸颊有遮挡
+  occlusionLeftContour,
+
+  /// 右脸颊有遮挡
+  occlusionRightContour,
+
+  /// 下颚有遮挡
+  occlusionChinCoutour,
+
+  /// 超时
+  ///
+  /// 会结束相机预览
+  ///
+  /// 可在此阶段弹窗并处理后续逻辑
+  timeout,
+
+  /// 眨眨眼
+  liveEye,
+
+  /// 张大嘴
+  liveMouth,
+
+  /// 向右摇头
+  liveYawLeft,
+
+  /// 向左摇头
+  liveYawRight,
+
+  /// 向上抬头
+  livePitchUp,
+
+  /// 向下低头
+  livePitchDown,
+
+  /// 摇摇头
+  liveYaw,
+
+  /// 完成一个活体动作
+  singleLivenessFinished,
+
+  ///  当前活体动作超时
+  actionCodeTimeout,
+
+  ///  左眼未睁开
+  leftEyeClosed,
+
+  ///  右眼未睁开
+  rightEyeClosed,
+
+  /// 鉴权失败
+  verifyInitError,
+
+  /// ?
+  conditionMeet,
+
+  /// faceid 发生变化
+  faceIdChanged,
+
+  /// ?
+  dataHitOne,
+}
+
+/// 人脸识别代码
+enum DetectRemindCode {
+  /// 成功
+  ok,
+
+  /// 出框
+  beyondPreviewFrame,
+
+  /// 没有检测到人脸
+  noFaceDetected,
+
+  /// 光照过强
+  muchIllumination,
+
+  /// 光照不足
+  poorIllumination,
+
+  /// 图像模糊
+  imageBlured,
+
+  /// 太远
+  tooFar,
+
+  /// 太近
+  tooClose,
+
+  /// 头部偏低
+  pitchOutofDownRange,
+
+  /// 头部偏高
+  pitchOutofUpRange,
+
+  /// 头部偏左
+  yawOutofLeftRange,
+
+  /// 头部偏右
+  yawOutofRightRange,
+
+  /// 左眼有遮挡
+  occlusionLeftEye,
+
+  /// 右眼有遮挡
+  occlusionRightEye,
+
+  /// 鼻子有遮挡
+  occlusionNose,
+
+  /// 嘴巴有遮挡
+  occlusionMouth,
+
+  /// 左脸颊有遮挡
+  occlusionLeftContour,
+
+  /// 右脸颊有遮挡
+  occlusionRightContour,
+
+  /// 下颚有遮挡
+  occlusionChinCoutour,
+
+  /// 超时
+  timeout,
+
+  /// 鉴权失败
+  verifyInitError,
+  conditionMeet,
+  dataHitOne
+}
+
+/// 活体采集结果
+class FaceLivenessResult {
+  FaceLivenessResult({
+    this.code,
+    this.info,
+  });
+
+  /// 活体检测代码
+  final LivenessRemindCode? code;
+
+  /// 人脸信息
+  final FaceInfo? info;
+
+  factory FaceLivenessResult.fromJson(dynamic json) {
+    return FaceLivenessResult(
+      code: LivenessRemindCode.values.elementAtOrNull(json['code'] ?? -1),
+      info: json['info'] == null ? null : FaceInfo.fromJson(json['info']),
+    );
+  }
+}
+
+/// 人脸检测结果
+class FaceDetectResult {
+  FaceDetectResult({
+    this.code,
+    this.info,
+  });
+
+  /// 人脸检测代码
+  final DetectRemindCode? code;
+
+  /// 人脸信息
+  final FaceInfo? info;
+
+  factory FaceDetectResult.fromJson(dynamic json) {
+    return FaceDetectResult(
+      code: DetectRemindCode.values.elementAtOrNull(json['code'] ?? -1),
+      info: json['info'] == null ? null : FaceInfo.fromJson(json['info']),
+    );
+  }
+}
+
+/// 人脸信息
+class FaceInfo {
+  FaceInfo({this.faceRect, this.image});
+  final Rect? faceRect;
+  final FaceImage? image;
+  factory FaceInfo.fromJson(dynamic json) {
+    Rect? rect;
+    final rectJson = json['faceRect'];
+    if (rectJson != null) {
+      rect = Rect.fromLTWH(
+        rectJson['left'] ?? 0,
+        rectJson['top'] ?? 0,
+        rectJson['width'] ?? 0,
+        rectJson['height'] ?? 0,
+      );
+    }
+    return FaceInfo(
+      faceRect: rect,
+      image: json['image'] == null ? null : FaceImage.fromJson(json['image']),
+    );
+  }
+}
+
+/// 人脸图片内容
+class FaceImage {
+  FaceImage({
+    this.original,
+    this.crop,
+  });
+
+  /// 原始图片
+  final String? original;
+
+  /// 剪裁后图片
+  final String? crop;
+  factory FaceImage.fromJson(dynamic json) {
+    return FaceImage(original: json['original'], crop: json['crop']);
+  }
 }

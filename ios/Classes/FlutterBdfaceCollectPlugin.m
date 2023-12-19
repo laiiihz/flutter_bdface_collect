@@ -1,28 +1,38 @@
 #import "FlutterBdfaceCollectPlugin.h"
 #import "BDFaceLivenessViewController.h"
 #import "BDFaceDetectionViewController.h"
+#import "FlutterBdfacePlatformView.h"
 
 @implementation FlutterBdfaceCollectPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  FlutterMethodChannel* channel = [FlutterMethodChannel
-      methodChannelWithName:@"com.fluttercandies.bdface_collect"
-            binaryMessenger:[registrar messenger]];
-  FlutterBdfaceCollectPlugin* instance = [[FlutterBdfaceCollectPlugin alloc] init];
-  [registrar addMethodCallDelegate:instance channel:channel];
+    FlutterMethodChannel* channel = [FlutterMethodChannel
+                                     methodChannelWithName:@"com.fluttercandies.bdface_collect"
+                                     binaryMessenger:[registrar messenger]];
+    FlutterBdfaceCollectPlugin* instance = [[FlutterBdfaceCollectPlugin alloc] init];
+    FlutterBdfacePlatformViewFactory* factory =
+    [[FlutterBdfacePlatformViewFactory alloc] initWithMessenger:registrar.messenger];
+    [registrar addMethodCallDelegate:instance channel:channel];
+    [registrar registerViewFactory:factory withId:@"com.fluttercandies.bdface_collect/view"];
+    
+    
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-  if ([call.method isEqualToString:GetPlatformVersion]) {
-    result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
-  } else if ([call.method isEqualToString:Init]) {
-      [self init:call.arguments result:result];
-  } else if ([call.method isEqualToString:Collect]) {
-      [self collect:call.arguments result:result];
-  } else if ([call.method isEqualToString:UnInit]) {
-      [self unInit:result];
-  } else {
-    result(FlutterMethodNotImplemented);
-  }
+    if ([call.method isEqualToString:GetPlatformVersion]) {
+        result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
+    } else if([call.method isEqualToString:GetVersion]) {
+        result([[FaceSDKManager sharedInstance] getVersion]);
+    } else if ([call.method isEqualToString:Init]) {
+        [self init:call.arguments result:result];
+    } else if ([call.method isEqualToString:Collect]) {
+        [self collect:call.arguments result:result];
+    } else if ([call.method isEqualToString:UnInit]) {
+        [self unInit:result];
+    } else if([call.method isEqualToString:UpdateOption]) {
+        [self updateOption:call.arguments result:result];
+    } else {
+        result(FlutterMethodNotImplemented);
+    }
 }
 
 ///  初始化
@@ -42,8 +52,7 @@
     result(NULL);
 }
 
-/// 采集
-- (void)collect:(NSDictionary*)faceConfigMap result:(FlutterResult)result{
+- (void)updateOptionRaw:(NSDictionary*)faceConfigMap{
     NSNumber* minFaceSize = faceConfigMap[@"minFaceSize"];
     NSNumber* notFace = faceConfigMap[@"notFace"];
     NSNumber* brightness = faceConfigMap[@"brightness"];
@@ -59,16 +68,15 @@
     NSNumber* headPitch = faceConfigMap[@"headPitch"];
     NSNumber* headYaw = faceConfigMap[@"headYaw"];
     NSNumber* headRoll = faceConfigMap[@"headRoll"];
-//    NSNumber* eyeClosed = faceConfigMap[@"eyeClosed"];
-//     NSNumber* cacheImageNum = faceConfigMap[@"cacheImageNum"];
+    //    NSNumber* eyeClosed = faceConfigMap[@"eyeClosed"];
+    //     NSNumber* cacheImageNum = faceConfigMap[@"cacheImageNum"];
     NSNumber* scale = faceConfigMap[@"scale"];
     NSNumber* cropHeight = faceConfigMap[@"cropHeight"];
     NSNumber* cropWidth = faceConfigMap[@"cropWidth"];
     NSNumber* enlargeRatio = faceConfigMap[@"enlargeRatio"];
     NSNumber* faceFarRatio = faceConfigMap[@"faceFarRatio"];
-//    NSNumber* faceClosedRatio = faceConfigMap[@"faceClosedRatio"];
+    //    NSNumber* faceClosedRatio = faceConfigMap[@"faceClosedRatio"];
     NSNumber* sound = faceConfigMap[@"sound"];
-    NSNumber* livenessRandom = faceConfigMap[@"livenessRandom"];
     NSNumber* secType = faceConfigMap[@"secType"];
     NSArray* livenessTypes = faceConfigMap[@"livenessTypes"];
     // 设置最小检测人脸阈值
@@ -99,7 +107,7 @@
     [[FaceSDKManager sharedInstance] setEulurAngleThrPitch:headPitch.floatValue yaw:headYaw.floatValue roll:headRoll.floatValue];
     // 设置输出图像个数
     [[FaceSDKManager sharedInstance] setMaxCropImageNum: 3];
-//     [[FaceSDKManager sharedInstance] setMaxCropImageNum:cacheImageNum.intValue];
+    //     [[FaceSDKManager sharedInstance] setMaxCropImageNum:cacheImageNum.intValue];
     // 设置原始图片缩放比例，默认1不缩放，scale 阈值0~1
     [[FaceSDKManager sharedInstance] setImageWithScale:scale.floatValue];
     // 设置截取人脸图片高
@@ -112,12 +120,31 @@
     [[FaceSDKManager sharedInstance] setMinRect:faceFarRatio.floatValue];
     // 设置图片加密类型，type=0 基于base64 加密；type=1 基于百度安全算法加密
     [[FaceSDKManager sharedInstance] setImageEncrypteType:secType.intValue];
-    // 初始化SDK功能
-    [[FaceSDKManager sharedInstance] initCollect];
-    BDFaceBaseViewController* lvc;
+    
     if (livenessTypes.count > 0){
         // 设置是否开启提示音
         [[IDLFaceLivenessManager sharedInstance] setEnableSound:sound.boolValue];
+    }else {
+        // 设置是否开启提示音
+        [[IDLFaceDetectionManager sharedInstance] setEnableSound:sound.boolValue];
+    }
+}
+
+- (void)updateOption:(NSDictionary*)faceConfigMap result:(FlutterResult)result{
+    [self updateOptionRaw:faceConfigMap];
+    result(NULL);
+}
+
+/// 采集
+- (void)collect:(NSDictionary*)faceConfigMap result:(FlutterResult)result{
+    [self updateOptionRaw:faceConfigMap];
+    
+    // 初始化SDK功能
+    [[FaceSDKManager sharedInstance] initCollect];
+    BDFaceBaseViewController* lvc;
+    NSArray* livenessTypes = faceConfigMap[@"livenessTypes"];
+    NSNumber* livenessRandom = faceConfigMap[@"livenessRandom"];
+    if (livenessTypes.count > 0){
         NSMutableArray* liveActionArray = [NSMutableArray new];
         for (NSString *typeStr in livenessTypes) {
             if ([typeStr isEqualToString:@"Eye"]){
@@ -138,8 +165,6 @@
         [lvc2 livenesswithList:liveActionArray order:!livenessRandom.boolValue numberOfLiveness:3];
         lvc = lvc2;
     } else {
-        // 设置是否开启提示音
-        [[IDLFaceDetectionManager sharedInstance] setEnableSound:sound.boolValue];
         lvc = [[BDFaceDetectionViewController alloc] init];
     }
     lvc.completion = ^(FaceCropImageInfo* bestImage){

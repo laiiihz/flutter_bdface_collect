@@ -6,9 +6,19 @@
 //
 // 获取平台版本
 #define GetPlatformVersion @"GetPlatformVersion"
+
+#define GetVersion @"GetVersion"
 // 初始化
 #define Init @"Init"
 // 采集
 #define Collect @"Collect"
 // 释放
 #define UnInit @"UnInit"
+// 返回活体采集结果
+#define OnLivenessResult @"OnLivenessResult"
+// 返回活体采集进度
+#define OnLivenessProgress @"OnLivenessProgress"
+// 返回人脸检测结果
+#define OnDetectResult @"OnDetectResult"
+// 更新检测配置
+#define UpdateOption @"UpdateOption"
